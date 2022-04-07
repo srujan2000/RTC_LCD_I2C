@@ -3,7 +3,6 @@
 #Real Time Clock with an LCD
 
 <img src="diagram.png"></img>
-
 ##Overview
 ####In this project we are going to retrieve the data of time and calender from the RTC and display it on the lcd, it updates data on LCD for every second.
 
