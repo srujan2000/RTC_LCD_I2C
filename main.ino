@@ -34,6 +34,8 @@ void setup() {
 
   i2c_stop();
   delay1();
+  
+  //  set_date_time(0x00,0x05,0x10,0x01,0x13,0x06,0x22);
 }
 
 void init_timer(){
