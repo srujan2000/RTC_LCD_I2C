@@ -256,12 +256,12 @@ void i2c_init(){
 }
 
 void i2c_start(){
-  *TWC_R = 0b10100100;
+  *TWC_R = 0xA4;
   while((*TWC_R>>7)&0x01 != 0);
 }
 
 void i2c_stop(){
-  *TWC_R = 0b10010100;
+  *TWC_R = 0x94;
 }
 
 void i2c_write(unsigned data){
@@ -271,12 +271,12 @@ void i2c_write(unsigned data){
 }
 
 void set_ack(){
-  *TWC_R = 0b11000100;
+  *TWC_R = 0xC4;
   while((*TWC_R>>7)&0x01==0);
 }
 
 void not_ack(){
- *TWC_R = 0b10000100;
+ *TWC_R = 0x84;
   while((*TWC_R>>7)&0x01==0);
 }
 
