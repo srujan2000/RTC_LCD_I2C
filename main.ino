@@ -3,7 +3,9 @@ volatile char *TWS_R = (char*)0xB9;
 volatile char *TWD_R = (char*)0xBB;
 volatile char *TWB_R = (char*)0xB8;
 unsigned char status,sec,minutes,hours,day,date,month,year;
-char days [7][20]= {"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
+char days [7][20]= {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+unsigned char buff[8];
+int no_bytes = 7
 
 
 void setup() {
@@ -56,23 +58,6 @@ ISR (TIMER1_COMPA_vect){
 }
 
 void show_date_time(){
-//  Serial.print("TIME -  ");
-//  Serial.print(hours,HEX);
-//  Serial.print(":");
-//  Serial.print(minutes,HEX);
-//  Serial.print(":");
-//  Serial.println(sec,HEX);
-//  Serial.print("Date -  ");
-//  Serial.print(date,HEX);
-//  Serial.print("/");
-//  Serial.print(month,HEX);
-//  Serial.print("/20");
-//  Serial.print(year,HEX);
-//  Serial.print(" (");
-//  Serial.print(days[day-1]);
-//  Serial.print(")");
-//  Serial.println("  ");
-//  Serial.println("  ");
 char hours1 = (hours>>4)&0x0F;
   char hours2 = (hours)&0x0F;
   lcd_write(hours1+'0');
@@ -127,7 +112,7 @@ void init_port(){
   *ddr2 = 0xFF;
 }
 
-void set_date_time(){
+void set_date_time(int sec,int min,int hour,int day,int date,int month,int year){
   i2c_start();
   delay1();
   status = *TWS_R & 0xF8;
@@ -145,37 +130,37 @@ void set_date_time(){
   
   
   //change according to the current date and time
-  i2c_write(0x00);//seconds
+  i2c_write(sec);//seconds
   delay1();
   status = *TWS_R & 0xF8;
 //  Serial.println(status,HEX);
 
-  i2c_write(0x37);//minutes
+  i2c_write(min);//minutes
   delay1();
   status = *TWS_R & 0xF8;
 //  Serial.println(status,HEX);
 
-  i2c_write(0x13);//hours
+  i2c_write(hour);//hours
   delay1();
   status = *TWS_R & 0xF8;
 //  Serial.println(status,HEX);
 
-  i2c_write(0x05);//day
+  i2c_write(day);//day
   delay1();
   status = *TWS_R & 0xF8;
 //  Serial.println(status,HEX);
 
-  i2c_write(0x24);//date
+  i2c_write(date);//date
   delay1();
   status = *TWS_R & 0xF8;
 //  Serial.println(status,HEX);
 
-  i2c_write(0x03);//month
+  i2c_write(month);//month
   delay1();
   status = *TWS_R & 0xF8;
 //  Serial.println(status,HEX);
 
-  i2c_write(0x22);//year
+  i2c_write(year);//year
   delay1();
   status = *TWS_R & 0xF8;
 //  Serial.println(status,HEX);
@@ -187,87 +172,33 @@ void set_date_time(){
 
 }
 
-void get_date_time(){
+void get_date_time(int byteno){
+  int i=0;
   i2c_start();
   delay1();
-  status = *TWS_R & 0xF8;
-//  Serial.println(status,HEX);
-
-  i2c_write(0xD0);
-  delay1();
-  status = *TWS_R & 0xF8;
-//  Serial.println(status,HEX);
-
-  i2c_write(0x00);
-  delay1();
-  status = *TWS_R & 0xF8;
-//  Serial.println(status,HEX);
-
-  i2c_stop();
-  delay1();
-  status = *TWS_R & 0xF8;
-//  Serial.println(status,HEX);
-
-  i2c_start();
-  delay1();
-  status = *TWS_R & 0xF8;
-//  Serial.println(status,HEX);
+  // status = *TWS_R & 0xF8;
+  // Serial.println(status,HEX);
 
   i2c_write(0xD1);
   delay1();
-  status = *TWS_R & 0xF8;
-//  Serial.println(status,HEX);
-
+  // status = *TWS_R & 0xF8;
+  // Serial.println(status,HEX);
   set_ack();
   delay1();
-  status = *TWS_R & 0xF8;
-//  Serial.println(status,HEX);
-
-  set_ack();
-  sec = *TWD_R;
-  delay1();
-  status = *TWS_R & 0xF8;
+  // status = *TWS_R & 0xF8;
   // Serial.println(status,HEX);
 
+  for(i=0;i<byteno-1;i++){
   set_ack();
-  minutes = *TWD_R;
+  buff[i] = *TWD_R;
   delay1();
-  status = *TWS_R & 0xF8;
-//  Serial.println(status,HEX);
-
-  set_ack();
-  hours = *TWD_R;
-  delay1();
-  status = *TWS_R & 0xF8;
-//  Serial.println(status,HEX);
-
-  set_ack();
-  day = *TWD_R;
-  delay1();
-  status = *TWS_R & 0xF8;
-//  Serial.println(status,HEX);
-
-  set_ack();
-  date = *TWD_R;
-  delay1();
-  status = *TWS_R & 0xF8;
-//  Serial.println(status,HEX);
-
-  set_ack();
-  month = *TWD_R;
-  delay1();
-  status = *TWS_R & 0xF8;
-//  Serial.println(status,HEX);
-  
+  }
 
   not_ack();
-  year = *TWD_R;
-  delay1();
+  buff[i] = *TWD_R;
   status = *TWS_R & 0xF8;
-  // Serial.println(status,HEX);
 
   i2c_stop();
-  delay1();
   status = *TWS_R & 0xF8;
   // Serial.println(status,HEX);
 }
