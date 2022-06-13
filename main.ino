@@ -3,13 +3,10 @@ volatile char *TWS_R = (char*)0xB9;
 volatile char *TWD_R = (char*)0xBB;
 volatile char *TWB_R = (char*)0xB8;
 unsigned char status,sec,minutes,hours,day,date,month,year;
-char days [7][20]= {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
-unsigned char buff[8];
-int no_bytes = 7
-
+char days [7][20]= {"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
 
 void setup() {
-  init_port();
+  Serial.begin(115200);
   i2c_init();
   i2c_start();
   init_timer();
@@ -34,9 +31,13 @@ void setup() {
 
   i2c_stop();
   delay1();
-  
-  //  set_date_time(0x00,0x05,0x10,0x01,0x13,0x06,0x22);
+//  status = *TWS_R & 0xF8;
+//  Serial.println(status,HEX);
+
+//  set_date_time();
+
 }
+
 
 void init_timer(){
   volatile char *TCCR1_A = 0x80;
@@ -54,13 +55,12 @@ void init_timer(){
 }
 
 ISR (TIMER1_COMPA_vect){
-   init_lcd();
    get_date_time();
    show_date_time();
 }
 
 void show_date_time(){
-char hours1 = (hours>>4)&0x0F;
+  char hours1 = (hours>>4)&0x0F;
   char hours2 = (hours)&0x0F;
   lcd_write(hours1+'0');
   lcd_write(hours2+'0');
@@ -106,15 +106,7 @@ char hours1 = (hours>>4)&0x0F;
   lcd_write(')');
 }
 
-void init_port(){
-  char *ddr1 = (char*)0x30;
-  *ddr1 = 0x03;
-
-  char *ddr2 = (char*)0x107;
-  *ddr2 = 0xFF;
-}
-
-void set_date_time(int sec,int min,int hour,int day,int date,int month,int year){
+void set_date_time(){
   i2c_start();
   delay1();
   status = *TWS_R & 0xF8;
@@ -129,40 +121,38 @@ void set_date_time(int sec,int min,int hour,int day,int date,int month,int year)
   delay1();
   status = *TWS_R & 0xF8;
   Serial.println(status,HEX);
-  
-  
-  //change according to the current date and time
-  i2c_write(sec);//seconds
+
+  i2c_write(0x00);//seconds
   delay1();
   status = *TWS_R & 0xF8;
 //  Serial.println(status,HEX);
 
-  i2c_write(min);//minutes
+  i2c_write(0x37);//minutes
   delay1();
   status = *TWS_R & 0xF8;
 //  Serial.println(status,HEX);
 
-  i2c_write(hour);//hours
+  i2c_write(0x13);//hours
   delay1();
   status = *TWS_R & 0xF8;
 //  Serial.println(status,HEX);
 
-  i2c_write(day);//day
+  i2c_write(0x05);//day
   delay1();
   status = *TWS_R & 0xF8;
 //  Serial.println(status,HEX);
 
-  i2c_write(date);//date
+  i2c_write(0x24);//date
   delay1();
   status = *TWS_R & 0xF8;
 //  Serial.println(status,HEX);
 
-  i2c_write(month);//month
+  i2c_write(0x03);//month
   delay1();
   status = *TWS_R & 0xF8;
 //  Serial.println(status,HEX);
 
-  i2c_write(year);//year
+  i2c_write(0x22);//year
   delay1();
   status = *TWS_R & 0xF8;
 //  Serial.println(status,HEX);
@@ -174,39 +164,93 @@ void set_date_time(int sec,int min,int hour,int day,int date,int month,int year)
 
 }
 
-void get_date_time(int byteno){
-  int i=0;
+void get_date_time(){
   i2c_start();
   delay1();
-  // status = *TWS_R & 0xF8;
-  // Serial.println(status,HEX);
+  status = *TWS_R & 0xF8;
+//  Serial.println(status,HEX);
+
+  i2c_write(0xD0);
+  delay1();
+  status = *TWS_R & 0xF8;
+//  Serial.println(status,HEX);
+
+  i2c_write(0x00);
+  delay1();
+  status = *TWS_R & 0xF8;
+//  Serial.println(status,HEX);
+
+  i2c_stop();
+  delay1();
+  status = *TWS_R & 0xF8;
+//  Serial.println(status,HEX);
+
+  i2c_start();
+  delay1();
+  status = *TWS_R & 0xF8;
+//  Serial.println(status,HEX);
 
   i2c_write(0xD1);
   delay1();
-  // status = *TWS_R & 0xF8;
-  // Serial.println(status,HEX);
+  status = *TWS_R & 0xF8;
+//  Serial.println(status,HEX);
+
   set_ack();
   delay1();
-  // status = *TWS_R & 0xF8;
+  status = *TWS_R & 0xF8;
+//  Serial.println(status,HEX);
+
+  set_ack();
+  sec = *TWD_R;
+  delay1();
+  status = *TWS_R & 0xF8;
   // Serial.println(status,HEX);
 
-  for(i=0;i<byteno-1;i++){
   set_ack();
-  buff[i] = *TWD_R;
+  minutes = *TWD_R;
   delay1();
-  }
+  status = *TWS_R & 0xF8;
+//  Serial.println(status,HEX);
+
+  set_ack();
+  hours = *TWD_R;
+  delay1();
+  status = *TWS_R & 0xF8;
+//  Serial.println(status,HEX);
+
+  set_ack();
+  day = *TWD_R;
+  delay1();
+  status = *TWS_R & 0xF8;
+//  Serial.println(status,HEX);
+
+  set_ack();
+  date = *TWD_R;
+  delay1();
+  status = *TWS_R & 0xF8;
+//  Serial.println(status,HEX);
+
+  set_ack();
+  month = *TWD_R;
+  delay1();
+  status = *TWS_R & 0xF8;
+//  Serial.println(status,HEX);
+  
 
   not_ack();
-  buff[i] = *TWD_R;
+  year = *TWD_R;
+  delay1();
   status = *TWS_R & 0xF8;
+  // Serial.println(status,HEX);
 
   i2c_stop();
+  delay1();
   status = *TWS_R & 0xF8;
   // Serial.println(status,HEX);
 }
 
 void i2c_init(){
-  *TWB_R = 0x48;
+  *TWB_R = 0x48; //100khz 
   *TWS_R = 0x00;
   *TWC_R = 0x04; //TWI enable
 }
@@ -236,59 +280,11 @@ void not_ack(){
   while((*TWC_R>>7)&0x01==0);
 }
 
-void init_lcd(){
-  data_lcd(0x38);
-  enable();
-  data_lcd(0x84);
-  enable();
-  data_lcd(0x0F);
-  enable();
- }
-
-void register_enable(){
-  control_lcd(0x02);
-  delay1();
-  control_lcd(0x03);
-  delay1();
-  control_lcd(0x02);
-  delay1();
-}
-
-void enable(){
-  control_lcd(0x01);
-  delay1();
-  control_lcd(0x00);
-  delay1();
-}
-
-void control_lcd(char data){
-  char *out = (char*)0x31;
-  *out = data;
-}
-
-void data_lcd(char data){
-  char *out = (char*)0x108;
-  *out = data;
-}
-
-void second_line(){
-  data_lcd(0x38);
-  enable();
-  data_lcd(0xC0);
-  enable();
-}
-
-void lcd_write(char data){
-  data_lcd(data);
-  register_enable();
-}
-
 void delay1(){
   volatile long i;
   for(i=0;i<100;i++);
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
 
+void loop() {
 }
